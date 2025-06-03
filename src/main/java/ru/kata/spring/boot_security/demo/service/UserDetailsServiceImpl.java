@@ -55,8 +55,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional
     public void updateUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        User existingUser = userRepository.findById(user.getId()).orElseThrow();
+        System.out.println("Старый хеш пароля: " + existingUser.getPassword());
+        System.out.println("Введённый пароль: " + user.getPassword());
+        existingUser.setName(user.getName());
+        existingUser.setEmail(user.getEmail());
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        }
+        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+            existingUser.setRoles(user.getRoles());
+        }
+
+        userRepository.save(existingUser);
     }
 
     @Override
@@ -75,7 +87,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public User findByEmail(String email) {
         User user = userRepository.findByEmail(email);
         if (user != null) {
-            user.getRoles().size(); // Принудительная инициализация ролей (если lazy)
+            user.getRoles().size();
         }
         return user;
     }
